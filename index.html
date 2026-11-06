@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="hospitalApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityCare Hospital Management</title>
+
+    <script src="https://code.angularjs.org/1.6.9/angular.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f2f6fa;
+            color: #333;
+        }
+
+        header {
+            background: #087e8b;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        nav {
+            background: #075b63;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 10px;
+        }
+
+        nav button {
+            background: transparent;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        nav button:hover,
+        nav button.active {
+            background: #08a0a9;
+            border-radius: 5px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 25px auto;
+            padding: 25px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #087e8b;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button.action {
+            background: #087e8b;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button.action:hover {
+            background: #075b63;
+        }
+
+        .delete {
+            background: #d9534f !important;
+        }
+
+        .item {
+            background: #eef7f8;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .done {
+            text-decoration: line-through;
+            color: gray;
+        }
+
+        .result {
+            background: #e0f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        footer {
+            background: #075b63;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body ng-init="page='home'">
+
+    <header>
+        <h1>CityCare Hospital</h1>
+        <p>Your Health, Our Priority</p>
+        <p>Name: DHANYA MYSIE | Register No: UTK24CS1002</p>
+    </header>
+
+    <nav>
+        <button ng-click="page='home'" ng-class="{active:page==='home'}">Home</button>
+        <button ng-click="page='feedback'" ng-class="{active:page==='feedback'}">Feedback</button>
+        <button ng-click="page='billing'" ng-class="{active:page==='billing'}">Bill Calculator</button>
+        <button ng-click="page='tasks'" ng-class="{active:page==='tasks'}">Task Management</button>
+    </nav>
+
+    <div class="container" ng-show="page==='home'">
+        <h2>Welcome to CityCare Hospital</h2>
+        <p>CityCare Hospital provides quality healthcare services with experienced doctors and modern facilities.</p>
+
+        <h3>Our Services</h3>
+        <div class="item">
+            <h4>Expert Doctors</h4>
+            <p>Experienced doctors provide the best treatment for patients.</p>
+        </div>
+
+        <div class="item">
+            <h4>Emergency Care</h4>
+            <p>24/7 emergency medical services are available.</p>
+        </div>
+
+        <div class="item">
+            <h4>Pharmacy</h4>
+            <p>Medicines are available for patient needs.</p>
+        </div>
+
+        <div class="item">
+            <h4>Patient Care</h4>
+            <p>We provide safe and comfortable patient care.</p>
+        </div>
+    </div>
+
+    <div class="container" ng-show="page==='feedback'" ng-controller="FeedbackController">
+        <h2>Patient Feedback</h2>
+
+        <label>Patient Name</label>
+        <input type="text" ng-model="patient" placeholder="Enter patient name">
+
+        <label>Feedback</label>
+        <textarea ng-model="message" placeholder="Enter your feedback"></textarea>
+
+        <button class="action" ng-click="addFeedback()">Submit Feedback</button>
+
+        <h3>Feedback List</h3>
+
+        <div class="item" ng-repeat="f in feedbacks">
+            <strong>{{f.patient}}</strong>
+            <p>{{f.message}}</p>
+            <button class="action delete" ng-click="removeFeedback($index)">Delete</button>
+        </div>
+
+        <p ng-show="feedbacks.length===0">No feedback available.</p>
+    </div>
+
+    <div class="container" ng-show="page==='billing'" ng-controller="BillController">
+        <h2>Hospital Bill Calculator</h2>
+
+        <label>Consultation Charge (Rs.)</label>
+        <input type="number" ng-model="consultation" min="0">
+
+        <label>Medicine Charge (Rs.)</label>
+        <input type="number" ng-model="medicine" min="0">
+
+        <label>Room Charge Per Day (Rs.)</label>
+        <input type="number" ng-model="room" min="0">
+
+        <label>Number of Days</label>
+        <input type="number" ng-model="days" min="1" step="1">
+
+        <button class="action" ng-click="calculateBill()">Calculate Bill</button>
+
+        <div class="result" ng-show="calculated">
+            <h3>Bill Details</h3>
+            <p>Consultation Charge: Rs. {{consultation}}</p>
+            <p>Medicine Charge: Rs. {{medicine}}</p>
+            <p>Room Charge: Rs. {{room}} × {{days}} days</p>
+            <h3>Total Bill: Rs. {{total}}</h3>
+        </div>
+
+        <p style="color:red" ng-show="error">{{error}}</p>
+    </div>
+
+    <div class="container" ng-show="page==='tasks'" ng-controller="TaskController">
+        <h2>Task Management</h2>
+
+        <label>Task Name</label>
+        <input type="text" ng-model="taskTitle" placeholder="Enter task">
+
+        <label>Priority</label>
+        <select ng-model="priority">
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select>
+
+        <button class="action" ng-click="addTask()">Add Task</button>
+
+        <h3>Task List</h3>
+
+        <div class="item" ng-repeat="t in tasks">
+            <input type="checkbox" ng-model="t.done" style="width:auto">
+            <span ng-class="{done:t.done}">
+                {{t.title}} - Priority: {{t.priority}}
+            </span>
+            <button class="action delete" ng-click="removeTask($index)">Delete</button>
+        </div>
+
+        <p ng-show="tasks.length===0">No tasks added.</p>
+
+        <h3>Completed Tasks: {{completedCount()}}</h3>
+        <h3>Total Tasks: {{tasks.length}}</h3>
+    </div>
+
+    <footer>
+        <p>© 2026 CityCare Hospital. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        var app = angular.module("hospitalApp", []);
+
+        app.controller("FeedbackController", function($scope) {
+            $scope.feedbacks = [];
+
+            $scope.addFeedback = function() {
+                if ($scope.patient && $scope.message) {
+                    $scope.feedbacks.push({
+                        patient: $scope.patient,
+                        message: $scope.message
+                    });
+
+                    $scope.patient = "";
+                    $scope.message = "";
+                } else {
+                    alert("Please enter patient name and feedback.");
+                }
+            };
+
+            $scope.removeFeedback = function(index) {
+                $scope.feedbacks.splice(index, 1);
+            };
+        });
+
+        app.controller("BillController", function($scope) {
+            $scope.consultation = 0;
+            $scope.medicine = 0;
+            $scope.room = 0;
+            $scope.days = 1;
+            $scope.calculated = false;
+
+            $scope.calculateBill = function() {
+                var values = [
+                    $scope.consultation,
+                    $scope.medicine,
+                    $scope.room,
+                    $scope.days
+                ];
+
+                var valid = values.every(function(value) {
+                    return value !== null &&
+                           value !== undefined &&
+                           !isNaN(value) &&
+                           value >= 0;
+                });
+
+                if (!valid || !Number.isInteger(Number($scope.days)) ||
+                    Number($scope.days) < 1) {
+                    $scope.error = "Please enter valid non-negative charges and whole days (at least 1).";
+                    $scope.calculated = false;
+                    return;
+                }
+
+                $scope.error = "";
+                $scope.total =
+                    Number($scope.consultation) +
+                    Number($scope.medicine) +
+                    (Number($scope.room) * Number($scope.days));
+
+                $scope.calculated = true;
+            };
+        });
+
+        app.controller("TaskController", function($scope) {
+            $scope.tasks = [];
+            $scope.priority = "Medium";
+
+            $scope.addTask = function() {
+                if ($scope.taskTitle) {
+                    $scope.tasks.push({
+                        title: $scope.taskTitle,
+                        priority: $scope.priority,
+                        done: false
+                    });
+
+                    $scope.taskTitle = "";
+                    $scope.priority = "Medium";
+                } else {
+                    alert("Please enter a task name.");
+                }
+            };
+
+            $scope.removeTask = function(index) {
+                $scope.tasks.splice(index, 1);
+            };
+
+            $scope.completedCount = function() {
+                return $scope.tasks.filter(function(task) {
+                    return task.done;
+                }).length;
+            };
+        });
+    </script>
+
+</body>
+</html>
